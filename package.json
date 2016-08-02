@@ -1,6 +1,6 @@
 {
   "name": "angular-nav-login",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Login components for NAV applications",
   "main": "dist/bundle.js",
   "scripts": {
