@@ -88,7 +88,7 @@ class LoginService {
       return this.canActivate()
     }
 
-    const username = instruction.params.username.toLowerCase()
+    const username = decodeURI(instruction.params.username.toLowerCase())
     const token = decodeBase64Url(instruction.params.token)
 
     return this.loginOrCreateUser(username, token)
