@@ -1,9 +1,18 @@
 # angular-nav-login
 
 [![Build Status][travis-image]][travis-url]
+[![npm version][npm-image]][npm-url]
+[![License][license-image]][license-url]
+[![semantic-release][semantic-release-image]][semantic-release-url]
 
-[travis-url]: https://travis-ci.com/fielded/nav-integrated-state-login
-[travis-image]: https://travis-ci.com/fielded/nav-integrated-state-login.svg
+[travis-url]: https://travis-ci.org/fielded/angular-nav-nav-login
+[travis-image]: https://img.shields.io/travis/fielded/angular-nav-nav-login.svg
+[npm-url]: https://www.npmjs.com/package/angular-nav-nav-login
+[npm-image]: https://img.shields.io/npm/v/angular-nav-nav-login.svg
+[license-url]: https://opensource.org/licenses/Apache-2.0
+[license-image]: https://img.shields.io/npm/l/angular-nav-nav-login.svg
+[semantic-release-url]: https://github.com/semantic-release/semantic-release
+[semantic-release-image]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
 
 > Login components for NAV applications
 
@@ -33,36 +42,6 @@ mainService
 Make sure your app registers them somewhere.
 
 Then simply add `angularNavLogin` as a dependency somewhere in your project that makes sense and you're good to go.
-
-## Contributing
-
-### Installation
-
-```bash
-# Clone the GitHub repository
-git clone git@github.com:fielded/angular-nav-login.git
-# Change into project folder
-cd angular-nav-login
-# Install the dev dependencies
-npm install
-```
-
-### Test Suite
-
-The test suite is configured to run with PhantomJS and is powered by:
-
-- Karma
-- Jasmine
-
-#### Running Tests
-
-```bash
-npm test
-```
-
-## Release Process
-
-To make a release, you need to run `npm run build`, commit the `dist` folder and tag the commit with an appropiate version according to the [SemVer spec](http://semver.org/).
 
 ## License
 
