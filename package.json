@@ -1,12 +1,12 @@
 {
   "name": "angular-nav-login",
-  "version": "1.0.2",
   "description": "Login components for NAV applications",
   "main": "dist/bundle.js",
   "scripts": {
     "build": "rollup -c",
     "pretest": "standard",
-    "test": "npm run build"
+    "test": "npm run build",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "keywords": [
     "nav",
@@ -37,7 +37,8 @@
     "rollup-plugin-node-resolve": "^1.5.0",
     "rollup-plugin-uglify": "^1.0.0",
     "standard": "^8.0.0",
-    "validate-commit-msg": "^2.8.0"
+    "validate-commit-msg": "^2.8.0",
+    "semantic-release": "^4.3.5"
   },
   "standard": {
     "globals": [
@@ -57,5 +58,9 @@
   },
   "files": [
     "dist/bundle.js"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fielded/angular-nav-login.git"
+  }
 }
