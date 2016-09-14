@@ -3,7 +3,8 @@
   "description": "Login components for NAV applications",
   "main": "dist/bundle.js",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup --config",
+    "postbuild": "uglifyjs dist/bundle.js --compress --mangle --output dist/bundle.min.js",
     "test": "standard",
     "prepublish-dist": "npm run build",
     "publish-dist": "publish-dist --author-name 'Field Bot' --author-email 'ops+github@field.partners'",
@@ -37,9 +38,9 @@
     "rollup-plugin-babel": "^2.4.0",
     "rollup-plugin-commonjs": "^2.2.1",
     "rollup-plugin-node-resolve": "^1.5.0",
-    "rollup-plugin-uglify": "^1.0.0",
     "semantic-release": "^4.3.5",
     "standard": "^8.0.0",
+    "uglify-js": "^2.7.3",
     "validate-commit-msg": "^2.8.0"
   },
   "standard": {
