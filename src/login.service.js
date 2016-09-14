@@ -35,7 +35,7 @@ class LoginService {
   handleLoginError (error) {
     let message = 'Could not log you in'
     if (error && error.data && error.data.message) {
-      message += `. The reply was "${error.data.message}".`
+      message += `. The response was "${error.data.message}".`
     }
     return this.toastService.error('login-failed', message)
   }
