@@ -5,12 +5,12 @@
 [![License][license-image]][license-url]
 [![semantic-release][semantic-release-image]][semantic-release-url]
 
-[travis-url]: https://travis-ci.org/fielded/angular-nav-nav-login
-[travis-image]: https://img.shields.io/travis/fielded/angular-nav-nav-login.svg
-[npm-url]: https://www.npmjs.com/package/angular-nav-nav-login
-[npm-image]: https://img.shields.io/npm/v/angular-nav-nav-login.svg
+[travis-url]: https://travis-ci.org/fielded/angular-nav-login
+[travis-image]: https://img.shields.io/travis/fielded/angular-nav-login.svg
+[npm-url]: https://www.npmjs.com/package/angular-nav-login
+[npm-image]: https://img.shields.io/npm/v/angular-nav-login.svg
 [license-url]: https://opensource.org/licenses/Apache-2.0
-[license-image]: https://img.shields.io/npm/l/angular-nav-nav-login.svg
+[license-image]: https://img.shields.io/npm/l/angular-nav-login.svg
 [semantic-release-url]: https://github.com/semantic-release/semantic-release
 [semantic-release-image]: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
 
