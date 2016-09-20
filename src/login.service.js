@@ -1,4 +1,20 @@
-import { decodeBase64Url } from './utils'
+import {
+  omit,
+  decodeBase64Url
+} from './utils'
+
+const reservedUserProperties = [
+  '_id',
+  '_rev',
+  'name',
+  'password',
+  'roles',
+  'type',
+  'salt',
+  'derived_key',
+  'password_scheme',
+  'iterations'
+]
 
 class LoginService {
   constructor (
@@ -83,6 +99,26 @@ class LoginService {
       .catch(err => this.navLogin(err))
   }
 
+  updateSession (username, session) {
+    const omitted = omit(session, reservedUserProperties)
+    const metadata = Object.assign(omitted, {
+      lastLogin: new Date().toISOString()
+    })
+
+    const updateIdRev = res => {
+      if (!res.ok) {
+        return session
+      }
+      return Object.assign(metadata, omit(res, ['ok']))
+    }
+
+    const opts = {
+      metadata
+    }
+    return this.sessionService.putUser(username, opts)
+      .then(updateIdRev)
+  }
+
   login (instruction) {
     if (!(instruction.params.username && instruction.params.token)) {
       return this.canActivate()
@@ -94,6 +130,7 @@ class LoginService {
 
     return this.loginOrCreateUser(username, token)
       .then(() => this.sessionService.getUser(username))
+      .then(session => this.updateSession(username, session))
       .then(session => this.setSession(session))
       .then(session => this.init(session))
       .catch(err => this.handleLoginError(err))
