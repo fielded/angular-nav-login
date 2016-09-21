@@ -55,9 +55,21 @@
   exports.decodeBase64Url = function (str) {
     return str.replace(/-/g, '+').replace(/_/g, '/').replace(/\./g, '=');
   };
+
+  exports.omit = function (obj, keys) {
+    return Object.keys(obj).reduce(function (index, key) {
+      if (keys.indexOf(key) === -1) {
+        index[key] = obj[key];
+      }
+      return index;
+    }, {});
+  };
   });
 
+  var omit = utils.omit;
   var decodeBase64Url = utils.decodeBase64Url;
+
+  var reservedUserProperties = ['_id', '_rev', 'name', 'password', 'roles', 'type', 'salt', 'derived_key', 'password_scheme', 'iterations'];
 
   var LoginService = function () {
     function LoginService($http, $window, $rootRouter, config, sessionService, toastService, mainService) {
@@ -152,6 +164,26 @@
         });
       }
     }, {
+      key: 'updateSession',
+      value: function updateSession(username, session) {
+        var omitted = omit(session, reservedUserProperties);
+        var metadata = Object.assign(omitted, {
+          lastLogin: new Date().toISOString()
+        });
+
+        var updateIdRev = function updateIdRev(res) {
+          if (!res.ok) {
+            return session;
+          }
+          return Object.assign(metadata, omit(res, ['ok']));
+        };
+
+        var opts = {
+          metadata: metadata
+        };
+        return this.sessionService.putUser(username, opts).then(updateIdRev);
+      }
+    }, {
       key: 'login',
       value: function login(instruction) {
         var _this3 = this;
@@ -165,6 +197,8 @@
 
         return this.loginOrCreateUser(username, token).then(function () {
           return _this3.sessionService.getUser(username);
+        }).then(function (session) {
+          return _this3.updateSession(username, session);
         }).then(function (session) {
           return _this3.setSession(session);
         }).then(function (session) {
