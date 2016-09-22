@@ -94,8 +94,33 @@ class LoginService {
   }
 
   canActivate () {
+    const isValidSession = (local, remote) => {
+      if (!remote.ok) {
+        return Promise.reject('session invalid')
+      }
+      if (!remote.userCtx) {
+        return Promise.reject('missing user context in session')
+      }
+      if (remote.userCtx.name !== local.userName) {
+        return Promise.reject(`session mismatch for user ${local.userName}`)
+      }
+    }
+
+    const checkSession = localSession => {
+      return this.sessionService.getSession()
+        .then(remoteSession => isValidSession(localSession, remoteSession))
+        .then(() => this.init(localSession))
+        .catch(err => {
+          if ('status' in err && err.status === 0) {
+            // User looks to be offline, grant login
+            return this.init(localSession)
+          }
+          throw err
+        })
+    }
+
     return this.getSession()
-      .then(session => this.init(session))
+      .then(localSession => checkSession(localSession))
       .catch(err => this.navLogin(err))
   }
 
