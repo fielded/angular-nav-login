@@ -98,10 +98,13 @@ class LoginService {
       if (!remote.ok) {
         return Promise.reject('session invalid')
       }
-      if (!remote.userCtx) {
-        return Promise.reject('missing user context in session')
+      if (!(remote.userCtx && remote.userCtx.name)) {
+        return Promise.reject('missing user context in remote session')
       }
-      if (remote.userCtx.name !== local.userName) {
+      if (!local.userName) {
+        return Promise.reject('missing user name in local session')
+      }
+      if (remote.userCtx.name.toLowerCase() !== local.userName.toLowerCase()) {
         return Promise.reject(`session mismatch for user ${local.userName}`)
       }
     }
