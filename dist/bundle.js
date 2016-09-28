@@ -1,7 +1,7 @@
-(function (angular) {
+(function (angular$1) {
   'use strict';
 
-  angular = 'default' in angular ? angular['default'] : angular;
+  angular$1 = 'default' in angular$1 ? angular$1['default'] : angular$1;
 
   function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
@@ -157,8 +157,37 @@
       value: function canActivate() {
         var _this2 = this;
 
-        return this.getSession().then(function (session) {
-          return _this2.init(session);
+        var isValidSession = function isValidSession(local, remote) {
+          if (!remote.ok) {
+            return Promise.reject('session invalid');
+          }
+          if (!(remote.userCtx && remote.userCtx.name)) {
+            return Promise.reject('missing user context in remote session');
+          }
+          if (!local.userName) {
+            return Promise.reject('missing user name in local session');
+          }
+          if (remote.userCtx.name.toLowerCase() !== local.userName.toLowerCase()) {
+            return Promise.reject('session mismatch for user ' + local.userName);
+          }
+        };
+
+        var checkSession = function checkSession(localSession) {
+          return _this2.sessionService.getSession().then(function (remoteSession) {
+            return isValidSession(localSession, remoteSession);
+          }).then(function () {
+            return _this2.init(localSession);
+          }).catch(function (err) {
+            if (angular.isObject(err) && err.status === 0) {
+              // User looks to be offline, grant login
+              return _this2.init(localSession);
+            }
+            throw err;
+          });
+        };
+
+        return this.getSession().then(function (localSession) {
+          return checkSession(localSession);
         }).catch(function (err) {
           return _this2.navLogin(err);
         });
@@ -222,6 +251,6 @@
 
   LoginService.$inject = ['$http', '$window', '$rootRouter', 'config', 'sessionService', 'toastService', 'mainService'];
 
-  angular.module('angularNavLogin', []).service('loginService', LoginService).component('login', LoginComponent);
+  angular$1.module('angularNavLogin', []).service('loginService', LoginService).component('login', LoginComponent);
 
 }(angular));
