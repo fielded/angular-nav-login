@@ -114,7 +114,7 @@ class LoginService {
         .then(remoteSession => isValidSession(localSession, remoteSession))
         .then(() => this.init(localSession))
         .catch(err => {
-          if (angular.isObject(err) && err.status === 0) {
+          if (!this.$window.navigator.onLine) {
             // User looks to be offline, grant login
             return this.init(localSession)
           }
