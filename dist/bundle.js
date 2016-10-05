@@ -1,7 +1,7 @@
-(function (angular$1) {
+(function (angular) {
   'use strict';
 
-  angular$1 = 'default' in angular$1 ? angular$1['default'] : angular$1;
+  angular = 'default' in angular ? angular['default'] : angular;
 
   function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
@@ -178,7 +178,7 @@
           }).then(function () {
             return _this2.init(localSession);
           }).catch(function (err) {
-            if (angular.isObject(err) && err.status === 0) {
+            if (!_this2.$window.navigator.onLine) {
               // User looks to be offline, grant login
               return _this2.init(localSession);
             }
@@ -251,6 +251,6 @@
 
   LoginService.$inject = ['$http', '$window', '$rootRouter', 'config', 'sessionService', 'toastService', 'mainService'];
 
-  angular$1.module('angularNavLogin', []).service('loginService', LoginService).component('login', LoginComponent);
+  angular.module('angularNavLogin', []).service('loginService', LoginService).component('login', LoginComponent);
 
 }(angular));
