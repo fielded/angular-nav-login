@@ -1,20 +1,4 @@
-import {
-  omit,
-  decodeBase64Url
-} from './utils'
-
-const reservedUserProperties = [
-  '_id',
-  '_rev',
-  'name',
-  'password',
-  'roles',
-  'type',
-  'salt',
-  'derived_key',
-  'password_scheme',
-  'iterations'
-]
+import { decodeBase64Url } from './utils'
 
 class LoginService {
   constructor (
@@ -24,7 +8,8 @@ class LoginService {
     config,
     sessionService,
     toastService,
-    mainService
+    mainService,
+    userSessionService
   ) {
     this.$http = $http
     this.$window = $window
@@ -33,6 +18,7 @@ class LoginService {
     this.sessionService = sessionService
     this.toastService = toastService
     this.mainService = mainService
+    this.userSessionService = userSessionService
   }
 
   createUser (username, token) {
@@ -56,16 +42,6 @@ class LoginService {
     return this.toastService.error('login-failed', message)
   }
 
-  setSession (session) {
-    const doc = Object.assign({}, session, {
-      _id: '_local/session'
-    })
-    const opts = {
-      forceUpdate: true
-    }
-    return this.sessionService.save(doc, opts)
-  }
-
   init (session) {
     this.mainService.init(session)
     this.$rootRouter.navigate(['/Nav'])
@@ -87,10 +63,6 @@ class LoginService {
     }
     return this.sessionService.login(username, token)
       .catch(retry)
-  }
-
-  getSession () {
-    return this.sessionService.get('_local/session')
   }
 
   canActivate () {
@@ -122,29 +94,9 @@ class LoginService {
         })
     }
 
-    return this.getSession()
+    return this.userSessionService.getSession()
       .then(localSession => checkSession(localSession))
       .catch(err => this.navLogin(err))
-  }
-
-  updateSession (username, session) {
-    const omitted = omit(session, reservedUserProperties)
-    const metadata = Object.assign(omitted, {
-      lastLogin: new Date().toISOString()
-    })
-
-    const updateIdRev = res => {
-      if (!res.ok) {
-        return session
-      }
-      return Object.assign(metadata, omit(res, ['ok']))
-    }
-
-    const opts = {
-      metadata
-    }
-    return this.sessionService.putUser(username, opts)
-      .then(updateIdRev)
   }
 
   login (instruction) {
@@ -156,16 +108,21 @@ class LoginService {
       .toLowerCase()
     const token = decodeBase64Url(instruction.params.token)
 
+    const diff = {
+      lastLogin: new Date().toISOString()
+    }
+
     return this.loginOrCreateUser(username, token)
       .then(() => this.sessionService.getUser(username))
-      .then(session => this.updateSession(username, session))
-      .then(session => this.setSession(session))
+      .then(session => this.userSessionService
+        .updateRemoteSession(username, session, diff))
+      .then(session => this.userSessionService.setSession(session))
       .then(session => this.init(session))
       .catch(err => this.handleLoginError(err))
   }
 
   logout () {
-    return this.getSession()
+    return this.userSessionService.getSession()
       .then(session => this.sessionService.remove(session))
   }
 }
@@ -177,7 +134,8 @@ LoginService.$inject = [
   'config',
   'sessionService',
   'toastService',
-  'mainService'
+  'mainService',
+  'userSessionService'
 ]
 
 export default LoginService
