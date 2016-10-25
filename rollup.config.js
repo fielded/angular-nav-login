@@ -2,9 +2,11 @@ import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import nodeResolve from 'rollup-plugin-node-resolve'
 
+const pkg = require('./package.json')
+
 export default {
   entry: 'src/index.js',
-  dest: 'dist/bundle.js',
+  dest: pkg.main,
   external: ['angular'],
   format: 'iife',
   plugins: [

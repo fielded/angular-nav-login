@@ -1,7 +1,7 @@
 {
   "name": "angular-nav-login",
   "description": "Login components for NAV applications",
-  "main": "dist/bundle.js",
+  "main": "dist/angular-nav-login.js",
   "authors": [
     "Tom Vincent <git@tlvince.com>"
   ],
