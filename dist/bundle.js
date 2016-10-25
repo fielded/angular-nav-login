@@ -5,6 +5,119 @@
 
   function __commonjs(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
+  var asyncGenerator = function () {
+    function AwaitValue(value) {
+      this.value = value;
+    }
+
+    function AsyncGenerator(gen) {
+      var front, back;
+
+      function send(key, arg) {
+        return new Promise(function (resolve, reject) {
+          var request = {
+            key: key,
+            arg: arg,
+            resolve: resolve,
+            reject: reject,
+            next: null
+          };
+
+          if (back) {
+            back = back.next = request;
+          } else {
+            front = back = request;
+            resume(key, arg);
+          }
+        });
+      }
+
+      function resume(key, arg) {
+        try {
+          var result = gen[key](arg);
+          var value = result.value;
+
+          if (value instanceof AwaitValue) {
+            Promise.resolve(value.value).then(function (arg) {
+              resume("next", arg);
+            }, function (arg) {
+              resume("throw", arg);
+            });
+          } else {
+            settle(result.done ? "return" : "normal", result.value);
+          }
+        } catch (err) {
+          settle("throw", err);
+        }
+      }
+
+      function settle(type, value) {
+        switch (type) {
+          case "return":
+            front.resolve({
+              value: value,
+              done: true
+            });
+            break;
+
+          case "throw":
+            front.reject(value);
+            break;
+
+          default:
+            front.resolve({
+              value: value,
+              done: false
+            });
+            break;
+        }
+
+        front = front.next;
+
+        if (front) {
+          resume(front.key, front.arg);
+        } else {
+          back = null;
+        }
+      }
+
+      this._invoke = send;
+
+      if (typeof gen.return !== "function") {
+        this.return = undefined;
+      }
+    }
+
+    if (typeof Symbol === "function" && Symbol.asyncIterator) {
+      AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+        return this;
+      };
+    }
+
+    AsyncGenerator.prototype.next = function (arg) {
+      return this._invoke("next", arg);
+    };
+
+    AsyncGenerator.prototype.throw = function (arg) {
+      return this._invoke("throw", arg);
+    };
+
+    AsyncGenerator.prototype.return = function (arg) {
+      return this._invoke("return", arg);
+    };
+
+    return {
+      wrap: function (fn) {
+        return function () {
+          return new AsyncGenerator(fn.apply(this, arguments));
+        };
+      },
+      await: function (value) {
+        return new AwaitValue(value);
+      }
+    };
+  }();
+
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -69,10 +182,8 @@
   var omit = utils.omit;
   var decodeBase64Url = utils.decodeBase64Url;
 
-  var reservedUserProperties = ['_id', '_rev', 'name', 'password', 'roles', 'type', 'salt', 'derived_key', 'password_scheme', 'iterations'];
-
   var LoginService = function () {
-    function LoginService($http, $window, $rootRouter, config, sessionService, toastService, mainService) {
+    function LoginService($http, $window, $rootRouter, config, sessionService, toastService, mainService, userSessionService) {
       classCallCheck(this, LoginService);
 
       this.$http = $http;
@@ -82,6 +193,7 @@
       this.sessionService = sessionService;
       this.toastService = toastService;
       this.mainService = mainService;
+      this.userSessionService = userSessionService;
     }
 
     createClass(LoginService, [{
@@ -106,17 +218,6 @@
           message += '. The response was "' + error.data.message + '".';
         }
         return this.toastService.error('login-failed', message);
-      }
-    }, {
-      key: 'setSession',
-      value: function setSession(session) {
-        var doc = Object.assign({}, session, {
-          _id: '_local/session'
-        });
-        var opts = {
-          forceUpdate: true
-        };
-        return this.sessionService.save(doc, opts);
       }
     }, {
       key: 'init',
@@ -146,11 +247,6 @@
           });
         };
         return this.sessionService.login(username, token).catch(retry);
-      }
-    }, {
-      key: 'getSession',
-      value: function getSession() {
-        return this.sessionService.get('_local/session');
       }
     }, {
       key: 'canActivate',
@@ -186,19 +282,69 @@
           });
         };
 
-        return this.getSession().then(function (localSession) {
+        return this.userSessionService.getSession().then(function (localSession) {
           return checkSession(localSession);
         }).catch(function (err) {
           return _this2.navLogin(err);
         });
       }
     }, {
-      key: 'updateSession',
-      value: function updateSession(username, session) {
-        var omitted = omit(session, reservedUserProperties);
-        var metadata = Object.assign(omitted, {
+      key: 'login',
+      value: function login(instruction) {
+        var _this3 = this;
+
+        if (!(instruction.params.username && instruction.params.token)) {
+          return this.canActivate();
+        }
+
+        var username = this.$window.decodeURI(instruction.params.username).toLowerCase();
+        var token = decodeBase64Url(instruction.params.token);
+
+        var diff = {
           lastLogin: new Date().toISOString()
+        };
+
+        return this.loginOrCreateUser(username, token).then(function () {
+          return _this3.sessionService.getUser(username);
+        }).then(function (session) {
+          return _this3.userSessionService.updateRemoteSession(username, session, diff);
+        }).then(function (session) {
+          return _this3.userSessionService.setSession(session);
+        }).then(function (session) {
+          return _this3.init(session);
+        }).catch(function (err) {
+          return _this3.handleLoginError(err);
         });
+      }
+    }, {
+      key: 'logout',
+      value: function logout() {
+        var _this4 = this;
+
+        return this.userSessionService.getSession().then(function (session) {
+          return _this4.sessionService.remove(session);
+        });
+      }
+    }]);
+    return LoginService;
+  }();
+
+  LoginService.$inject = ['$http', '$window', '$rootRouter', 'config', 'sessionService', 'toastService', 'mainService', 'userSessionService'];
+
+  var reservedUserProperties = ['_id', '_rev', 'name', 'password', 'roles', 'type', 'salt', 'derived_key', 'password_scheme', 'iterations'];
+
+  var UserSessionService = function () {
+    function UserSessionService(sessionService) {
+      classCallCheck(this, UserSessionService);
+
+      this.sessionService = sessionService;
+    }
+
+    createClass(UserSessionService, [{
+      key: 'updateRemoteSession',
+      value: function updateRemoteSession(username, session, diff) {
+        var omitted = omit(session, reservedUserProperties);
+        var metadata = Object.assign(omitted, diff);
 
         var updateIdRev = function updateIdRev(res) {
           if (!res.ok) {
@@ -213,44 +359,27 @@
         return this.sessionService.putUser(username, opts).then(updateIdRev);
       }
     }, {
-      key: 'login',
-      value: function login(instruction) {
-        var _this3 = this;
-
-        if (!(instruction.params.username && instruction.params.token)) {
-          return this.canActivate();
-        }
-
-        var username = this.$window.decodeURI(instruction.params.username).toLowerCase();
-        var token = decodeBase64Url(instruction.params.token);
-
-        return this.loginOrCreateUser(username, token).then(function () {
-          return _this3.sessionService.getUser(username);
-        }).then(function (session) {
-          return _this3.updateSession(username, session);
-        }).then(function (session) {
-          return _this3.setSession(session);
-        }).then(function (session) {
-          return _this3.init(session);
-        }).catch(function (err) {
-          return _this3.handleLoginError(err);
-        });
+      key: 'getSession',
+      value: function getSession() {
+        return this.sessionService.get('_local/session');
       }
     }, {
-      key: 'logout',
-      value: function logout() {
-        var _this4 = this;
-
-        return this.getSession().then(function (session) {
-          return _this4.sessionService.remove(session);
+      key: 'setSession',
+      value: function setSession(session) {
+        var doc = Object.assign({}, session, {
+          _id: '_local/session'
         });
+        var opts = {
+          forceUpdate: true
+        };
+        return this.sessionService.save(doc, opts);
       }
     }]);
-    return LoginService;
+    return UserSessionService;
   }();
 
-  LoginService.$inject = ['$http', '$window', '$rootRouter', 'config', 'sessionService', 'toastService', 'mainService'];
+  UserSessionService.$inject = ['sessionService'];
 
-  angular.module('angularNavLogin', []).service('loginService', LoginService).component('login', LoginComponent);
+  angular.module('angularNavLogin', []).service('loginService', LoginService).service('userSessionService', UserSessionService).component('login', LoginComponent);
 
 }(angular));
