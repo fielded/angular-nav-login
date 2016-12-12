@@ -1,10 +1,11 @@
 {
   "name": "angular-nav-login",
   "description": "Login components for NAV applications",
-  "main": "dist/bundle.js",
+  "main": "dist/angular-nav-login.js",
   "scripts": {
+    "prebuild": "rm -rf dist && mkdir dist",
     "build": "rollup --config",
-    "postbuild": "uglifyjs dist/bundle.js --compress --mangle --output dist/bundle.min.js",
+    "postbuild": "uglifyjs dist/angular-nav-login.js --compress --mangle --output dist/angular-nav-login.min.js",
     "test": "standard",
     "prepublish-dist": "npm run build",
     "publish-dist": "publish-dist --author-name 'Field Bot' --author-email 'ops+github@field.partners'",
@@ -51,7 +52,10 @@
     "env": {
       "browser": true,
       "jasmine": true
-    }
+    },
+    "ignore": [
+      "dist"
+    ]
   },
   "config": {
     "ghooks": {
@@ -60,7 +64,7 @@
     }
   },
   "files": [
-    "dist/bundle.js"
+    "dist"
   ],
   "repository": {
     "type": "git",
