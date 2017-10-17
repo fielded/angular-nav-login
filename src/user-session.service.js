@@ -5,7 +5,6 @@ const reservedUserProperties = [
   '_rev',
   'name',
   'password',
-  'roles',
   'type',
   'salt',
   'derived_key',
