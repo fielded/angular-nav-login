@@ -4,7 +4,6 @@ class LoginService {
   constructor (
     $http,
     $window,
-    $rootRouter,
     config,
     sessionService,
     toastService,
@@ -13,7 +12,6 @@ class LoginService {
   ) {
     this.$http = $http
     this.$window = $window
-    this.$rootRouter = $rootRouter
     this.config = config
     this.sessionService = sessionService
     this.toastService = toastService
@@ -44,7 +42,6 @@ class LoginService {
 
   init (session) {
     this.mainService.init(session)
-    this.$rootRouter.navigate(['/Nav'])
     return session
   }
 
