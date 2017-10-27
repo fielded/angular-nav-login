@@ -127,7 +127,6 @@ class LoginService {
 LoginService.$inject = [
   '$http',
   '$window',
-  '$rootRouter',
   'config',
   'sessionService',
   'toastService',
