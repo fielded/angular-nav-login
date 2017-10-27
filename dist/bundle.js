@@ -55,12 +55,11 @@
   function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var LoginService = function () {
-    function LoginService($http, $window, $rootRouter, config, sessionService, toastService, mainService, userSessionService) {
+    function LoginService($http, $window, config, sessionService, toastService, mainService, userSessionService) {
       _classCallCheck$1(this, LoginService);
 
       this.$http = $http;
       this.$window = $window;
-      this.$rootRouter = $rootRouter;
       this.config = config;
       this.sessionService = sessionService;
       this.toastService = toastService;
@@ -95,7 +94,6 @@
       key: 'init',
       value: function init(session) {
         this.mainService.init(session);
-        this.$rootRouter.navigate(['/Nav']);
         return session;
       }
     }, {
