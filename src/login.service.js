@@ -2,6 +2,7 @@ import { decodeBase64Url } from './utils'
 
 class LoginService {
   constructor (
+    $q,
     $http,
     $window,
     config,
@@ -10,6 +11,7 @@ class LoginService {
     mainService,
     userSessionService
   ) {
+    this.$q = $q
     this.$http = $http
     this.$window = $window
     this.config = config
@@ -65,16 +67,16 @@ class LoginService {
   canActivate () {
     const isValidSession = (local, remote) => {
       if (!remote.ok) {
-        return Promise.reject('session invalid')
+        return this.$q.reject('session invalid')
       }
       if (!(remote.userCtx && remote.userCtx.name)) {
-        return Promise.reject('missing user context in remote session')
+        return this.$q.reject('missing user context in remote session')
       }
       if (!local.userName) {
-        return Promise.reject('missing user name in local session')
+        return this.$q.reject('missing user name in local session')
       }
       if (remote.userCtx.name.toLowerCase() !== local.userName.toLowerCase()) {
-        return Promise.reject(`session mismatch for user ${local.userName}`)
+        return this.$q.reject(`session mismatch for user ${local.userName}`)
       }
     }
 
@@ -125,6 +127,7 @@ class LoginService {
 }
 
 LoginService.$inject = [
+  '$q',
   '$http',
   '$window',
   'config',
